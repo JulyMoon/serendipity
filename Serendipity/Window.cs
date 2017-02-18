@@ -13,15 +13,16 @@ namespace Serendipity
 {
     class Window : GameWindow
     {
-        private const int WINDOW_WIDTH = TILE_WIDTH * 8;
-        private const int WINDOW_HEIGHT = TILE_HEIGHT * 8;
-        private const int TILE_WIDTH = 30;
-        private const int TILE_HEIGHT = 50;
-        private const int MAP_X = 10;
-        private const int MAP_Y = 20;
+        private const int WINDOW_WIDTH = 300;
+        private const int WINDOW_HEIGHT = 450;
+        private const int HOR_BORDER = 30;
+        private const int VER_BORDER = 30;
 
         private const double WIDTH_K = 2d / WINDOW_WIDTH;
         private const double HEIGHT_K = -2d / WINDOW_HEIGHT;
+
+        private int tileWidth;
+        private int tileHeight;
 
         private Game game = new Game();
 
@@ -37,6 +38,9 @@ namespace Serendipity
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
+
+            tileWidth = (WINDOW_WIDTH - 2 * HOR_BORDER) / game.Width;
+            tileHeight = (WINDOW_HEIGHT - 2 * VER_BORDER) / game.Height;
 
             GL.ClearColor(Color.Black);
             GL.PointSize(4);
@@ -67,15 +71,15 @@ namespace Serendipity
             var mdown = ms.IsButtonDown(MouseButton.Left);
             if (prevMDown != mdown)
             {
-                int xx = mx - MAP_X;
-                int yy = my - MAP_Y;
+                int xx = mx - HOR_BORDER;
+                int yy = my - VER_BORDER;
                 if (xx >= 0 && yy >= 0)
                 {
-                    int ox = xx % TILE_WIDTH;
-                    int oy = yy % TILE_HEIGHT;
+                    int ox = xx % tileWidth;
+                    int oy = yy % tileHeight;
 
-                    xx /= TILE_WIDTH;
-                    yy /= TILE_HEIGHT;
+                    xx /= tileWidth;
+                    yy /= tileHeight;
                     if (xx < game.Width && yy < game.Height && !game.IsLocked(xx, yy))
                     {
                         if (mdown)
@@ -119,7 +123,7 @@ namespace Serendipity
         private void DrawMap()
         {
             GL.PushMatrix();
-            GL.Translate(MAP_X * WIDTH_K, MAP_Y * HEIGHT_K, 0);
+            GL.Translate(HOR_BORDER * WIDTH_K, VER_BORDER * HEIGHT_K, 0);
 
             for (int x = 0; x < game.Width; ++x)
                 for (int y = 0; y < game.Height; ++y)
@@ -131,14 +135,14 @@ namespace Serendipity
 
         private void DrawGridTile(int x, int y)
         {
-            DrawTile(x * TILE_WIDTH, y * TILE_HEIGHT, game.Get(x, y));
+            DrawTile(x * tileWidth, y * tileHeight, game.Get(x, y));
 
             if (game.IsLocked(x, y))
             {
                 GL.Begin(PrimitiveType.Points);
                 GL.Color4(Color.Black);
                 
-                GL.Vertex2((x + 0.5) * TILE_WIDTH, (y + 0.5) * TILE_HEIGHT);
+                GL.Vertex2((x + 0.5) * tileWidth, (y + 0.5) * tileHeight);
 
                 GL.End();
             }
@@ -153,9 +157,9 @@ namespace Serendipity
             GL.Color4(tile);
 
             GL.Vertex2(0, 0);
-            GL.Vertex2(TILE_WIDTH, 0);
-            GL.Vertex2(TILE_WIDTH, TILE_HEIGHT);
-            GL.Vertex2(0, TILE_HEIGHT);
+            GL.Vertex2(tileWidth, 0);
+            GL.Vertex2(tileWidth, tileHeight);
+            GL.Vertex2(0, tileHeight);
 
             GL.End();
 

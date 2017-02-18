@@ -15,7 +15,7 @@ namespace Serendipity
         private Map map;
         public Game()
         {
-            map = new Map(7, 7, Color.Blue, Color.Red, Color.DodgerBlue, Color.Yellow);
+            map = new Map(9, 11, Color.Blue, Color.Red, Color.DodgerBlue, Color.Yellow);
         }
 
         public void Swap(int x1, int y1, int x2, int y2)
