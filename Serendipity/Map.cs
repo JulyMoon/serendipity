@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 
 namespace Serendipity
@@ -11,6 +12,8 @@ namespace Serendipity
         public readonly Color BottomLeft;
 
         public readonly int Width, Height;
+
+        private static readonly Random random = new Random();
 
         private Color[,] solution;
         private Color[,] tiles;
@@ -33,10 +36,36 @@ namespace Serendipity
                 {
                     solution[x, y] = Blerp(topLeft, topRight, bottomRight, bottomLeft, (double)x / (Width - 1), (double)y / (Height - 1));
                     tiles[x, y] = solution[x, y];
-                    locked[x, y] = false;
+
+                    int ax = x < Width / 2 ? x : Width - x - 1;
+                    int ay = y < Height / 2 ? y : Height - y - 1;
+                    locked[x, y] = ax == 0 || ay == 0; //(ax + ay) % 2 == 0;
                 }
 
-            locked[0, 0] = locked[Width - 1, 0] = locked[Width - 1, Height - 1] = locked[0, Height - 1] = true;
+            //locked[0, 0] = locked[Width - 1, 0] = locked[Width - 1, Height - 1] = locked[0, Height - 1] = true;
+
+            Randomize();
+        }
+
+        private void Randomize()
+        {
+            var spots = new List<Tuple<int, int>>();
+            var freeTiles = new List<Color>();
+
+            for (int x = 0; x < Width; ++x)
+                for (int y = 0; y < Height; ++y)
+                    if (!locked[x, y])
+                    {
+                        spots.Add(Tuple.Create(x, y));
+                        freeTiles.Add(solution[x, y]);
+                    }
+
+            for (int i = 0; i < spots.Count; ++i)
+            {
+                int index = random.Next(freeTiles.Count);
+                tiles[spots[i].Item1, spots[i].Item2] = freeTiles[index];
+                freeTiles.RemoveAt(index);
+            }
         }
 
         public void Swap(int x1, int y1, int x2, int y2)
