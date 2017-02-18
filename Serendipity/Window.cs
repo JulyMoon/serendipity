@@ -32,26 +32,13 @@ namespace Serendipity
         private int dragTileX, dragTileY;
         private int dragOffsetX, dragOffsetY;
 
-        //private int testure;
-        //private int mx, my;
-
         public Window() : base(WINDOW_WIDTH, WINDOW_HEIGHT, GraphicsMode.Default, "Serendipity", GameWindowFlags.FixedWindow) { }
 
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
 
-            /*using (Bitmap bmp = new Bitmap(100, 100))
-            {
-                using (Graphics g = Graphics.FromImage(bmp))
-                {
-                    g.Clear(Color.DeepSkyBlue);
-                    testure = LoadTexture(bmp);
-                }
-            }*/
-
             GL.ClearColor(Color.Black);
-            //GL.Color4(Color.White);
             GL.Ortho(0, Width, Height, 0, -1, 1);
             GL.Viewport(ClientSize);
             GL.Enable(EnableCap.Texture2D);
@@ -88,7 +75,7 @@ namespace Serendipity
 
                     xx /= TILE_WIDTH;
                     yy /= TILE_HEIGHT;
-                    if (xx < game.CurrentMap.Width && yy < game.CurrentMap.Height)
+                    if (xx < game.Width && yy < game.Height)
                     {
                         if (mdown)
                         {
@@ -101,7 +88,7 @@ namespace Serendipity
                         else
                         {
                             dragging = false;
-                            game.CurrentMap.Swap(dragTileX, dragTileY, xx, yy);
+                            game.Swap(dragTileX, dragTileY, xx, yy);
                         }
                     }
                     else if (!mdown)
@@ -123,7 +110,7 @@ namespace Serendipity
             if (!dragging)
                 return;
 
-            DrawTile(mx - dragOffsetX, my - dragOffsetY, game.CurrentMap.Get(dragTileX, dragTileY));
+            DrawTile(mx - dragOffsetX, my - dragOffsetY, game.Get(dragTileX, dragTileY));
         }
     
         private void DrawMap()
@@ -131,10 +118,10 @@ namespace Serendipity
             GL.PushMatrix();
             GL.Translate(MAP_X * WIDTH_K, MAP_Y * HEIGHT_K, 0);
 
-            for (int x = 0; x < game.CurrentMap.Width; ++x)
-                for (int y = 0; y < game.CurrentMap.Height; ++y)
+            for (int x = 0; x < game.Width; ++x)
+                for (int y = 0; y < game.Height; ++y)
                     if (!dragging || x != dragTileX || y != dragTileY)
-                        DrawGridTile(x, y, game.CurrentMap.Get(x, y));
+                        DrawGridTile(x, y, game.Get(x, y));
 
             GL.PopMatrix();
         }
