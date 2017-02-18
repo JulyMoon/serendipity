@@ -24,6 +24,9 @@ namespace Serendipity
         public Color Get(int x, int y)
             => map.Get(x, y);
 
+        public bool IsLocked(int x, int y)
+            => map.IsLocked(x, y);
+
         public bool IsSolved()
             => map.IsSolved();
     }

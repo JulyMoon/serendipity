@@ -39,6 +39,7 @@ namespace Serendipity
             base.OnLoad(e);
 
             GL.ClearColor(Color.Black);
+            GL.PointSize(4);
             GL.Ortho(0, Width, Height, 0, -1, 1);
             GL.Viewport(ClientSize);
             GL.Enable(EnableCap.Texture2D);
@@ -75,7 +76,7 @@ namespace Serendipity
 
                     xx /= TILE_WIDTH;
                     yy /= TILE_HEIGHT;
-                    if (xx < game.Width && yy < game.Height)
+                    if (xx < game.Width && yy < game.Height && !game.IsLocked(xx, yy))
                     {
                         if (mdown)
                         {
@@ -85,10 +86,12 @@ namespace Serendipity
                             dragOffsetX = ox;
                             dragOffsetY = oy;
                         }
-                        else
+                        else if (dragging)
                         {
                             dragging = false;
-                            game.Swap(dragTileX, dragTileY, xx, yy);
+
+                            if (dragTileX != xx || dragTileY != yy)
+                                game.Swap(dragTileX, dragTileY, xx, yy);
                         }
                     }
                     else if (!mdown)
@@ -121,13 +124,25 @@ namespace Serendipity
             for (int x = 0; x < game.Width; ++x)
                 for (int y = 0; y < game.Height; ++y)
                     if (!dragging || x != dragTileX || y != dragTileY)
-                        DrawGridTile(x, y, game.Get(x, y));
+                        DrawGridTile(x, y);
 
             GL.PopMatrix();
         }
 
-        private void DrawGridTile(int x, int y, Color tile)
-            => DrawTile(x * TILE_WIDTH, y * TILE_HEIGHT, tile);
+        private void DrawGridTile(int x, int y)
+        {
+            DrawTile(x * TILE_WIDTH, y * TILE_HEIGHT, game.Get(x, y));
+
+            if (game.IsLocked(x, y))
+            {
+                GL.Begin(PrimitiveType.Points);
+                GL.Color4(Color.Black);
+                
+                GL.Vertex2((x + 0.5) * TILE_WIDTH, (y + 0.5) * TILE_HEIGHT);
+
+                GL.End();
+            }
+        }
 
         private void DrawTile(int x, int y, Color tile)
         {
