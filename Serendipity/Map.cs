@@ -11,6 +11,7 @@ namespace Serendipity
 
         public readonly int Width, Height;
 
+        private Color[,] solution;
         private Color[,] tiles;
 
         public Map(int width, int height, Color topLeft, Color topRight, Color bottomRight, Color bottomLeft)
@@ -22,10 +23,30 @@ namespace Serendipity
             Width = width;
             Height = height;
 
+            solution = new Color[Width, Height];
             tiles = new Color[Width, Height];
             for (int x = 0; x < Width; ++x)
                 for (int y = 0; y < Height; ++y)
-                    tiles[x, y] = Blerp(topLeft, topRight, bottomRight, bottomLeft, (double)x / (Width - 1), (double)y / (Height - 1));
+                {
+                    solution[x, y] = Blerp(topLeft, topRight, bottomRight, bottomLeft, (double)x / (Width - 1), (double)y / (Height - 1));
+                    tiles[x, y] = solution[x, y];
+                }
+        }
+
+        public void Swap(int x1, int y1, int x2, int y2)
+        {
+            var temp = tiles[x2, y2];
+            tiles[x2, y2] = tiles[x1, y1];
+            tiles[x1, y1] = temp;
+        }
+
+        public bool IsSolved()
+        {
+            for (int x = 0; x < Width; ++x)
+                for (int y = 0; y < Height; ++y)
+                    if (tiles[x, y].ToArgb() != solution[x, y].ToArgb())
+                        return false;
+            return true;
         }
 
         public Color Get(int x, int y)

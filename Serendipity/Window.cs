@@ -13,15 +13,24 @@ namespace Serendipity
 {
     class Window : GameWindow
     {
-        private const int WINDOW_WIDTH = 640;
-        private const int WINDOW_HEIGHT = 480;
+        private const int WINDOW_WIDTH = TILE_WIDTH * 8;
+        private const int WINDOW_HEIGHT = TILE_HEIGHT * 8;
         private const int TILE_WIDTH = 30;
         private const int TILE_HEIGHT = 50;
+        private const int MAP_X = 10;
+        private const int MAP_Y = 20;
 
         private const double WIDTH_K = 2d / WINDOW_WIDTH;
         private const double HEIGHT_K = -2d / WINDOW_HEIGHT;
 
         private Game game = new Game();
+
+        private bool prevMDown;
+        private int mx, my;
+
+        private bool dragging;
+        private int dragTileX, dragTileY;
+        private int dragOffsetX, dragOffsetY;
 
         //private int testure;
         //private int mx, my;
@@ -54,38 +63,100 @@ namespace Serendipity
         {
             base.OnUpdateFrame(e);
 
-            /*KeyboardState ks = OpenTK.Input.Keyboard.GetState();
-            MouseState ms = OpenTK.Input.Mouse.GetCursorState();
+            if (!Focused)
+                return;
 
-            Point p = PointToClient(new Point(ms.X, ms.Y));
+            //KeyboardState ks = OpenTK.Input.Keyboard.GetState();
+
+            //if (ks.IsKeyDown(Key.Escape))
+            //    Exit();
+
+            var ms = OpenTK.Input.Mouse.GetCursorState();
+            var p = PointToClient(new Point(ms.X, ms.Y));
             mx = p.X;
             my = p.Y;
 
-            if (ks.IsKeyDown(Key.Escape))
-                Exit();*/
+            var mdown = ms.IsButtonDown(MouseButton.Left);
+            if (prevMDown != mdown)
+            {
+                int xx = mx - MAP_X;
+                int yy = my - MAP_Y;
+                if (xx >= 0 && yy >= 0)
+                {
+                    int ox = xx % TILE_WIDTH;
+                    int oy = yy % TILE_HEIGHT;
+
+                    xx /= TILE_WIDTH;
+                    yy /= TILE_HEIGHT;
+                    if (xx < game.CurrentMap.Width && yy < game.CurrentMap.Height)
+                    {
+                        if (mdown)
+                        {
+                            dragging = true;
+                            dragTileX = xx;
+                            dragTileY = yy;
+                            dragOffsetX = ox;
+                            dragOffsetY = oy;
+                        }
+                        else
+                        {
+                            dragging = false;
+                            game.CurrentMap.Swap(dragTileX, dragTileY, xx, yy);
+                        }
+                    }
+                    else if (!mdown)
+                    {
+                        dragging = false;
+                    }
+                }
+                else if (!mdown)
+                {
+                    dragging = false;
+                }
+            }
+
+            prevMDown = mdown;
+        }
+
+        private void DrawDrag()
+        {
+            if (!dragging)
+                return;
+
+            DrawTile(mx - dragOffsetX, my - dragOffsetY, game.CurrentMap.Get(dragTileX, dragTileY));
         }
     
         private void DrawMap()
         {
+            GL.PushMatrix();
+            GL.Translate(MAP_X * WIDTH_K, MAP_Y * HEIGHT_K, 0);
+
             for (int x = 0; x < game.CurrentMap.Width; ++x)
                 for (int y = 0; y < game.CurrentMap.Height; ++y)
-                    DrawTile(x, y, game.CurrentMap.Get(x, y));
+                    if (!dragging || x != dragTileX || y != dragTileY)
+                        DrawGridTile(x, y, game.CurrentMap.Get(x, y));
+
+            GL.PopMatrix();
         }
 
-        private void DrawTile(int x, int y, Color color)
+        private void DrawGridTile(int x, int y, Color tile)
+            => DrawTile(x * TILE_WIDTH, y * TILE_HEIGHT, tile);
+
+        private void DrawTile(int x, int y, Color tile)
         {
             GL.PushMatrix();
-            GL.Translate(x * TILE_WIDTH * WIDTH_K, y * TILE_HEIGHT * HEIGHT_K, 0);
+            GL.Translate(x * WIDTH_K, y * HEIGHT_K, 0);
 
             GL.Begin(PrimitiveType.Quads);
-            GL.Color4(color);
-            
+            GL.Color4(tile);
+
             GL.Vertex2(0, 0);
             GL.Vertex2(TILE_WIDTH, 0);
             GL.Vertex2(TILE_WIDTH, TILE_HEIGHT);
             GL.Vertex2(0, TILE_HEIGHT);
 
             GL.End();
+
             GL.PopMatrix();
         }
 
@@ -96,27 +167,9 @@ namespace Serendipity
 
             GL.MatrixMode(MatrixMode.Projection);
             GL.LoadIdentity();
-
+            
             DrawMap();
-
-            /*GL.BindTexture(TextureTarget.Texture2D, testure);//
-            GL.Begin(PrimitiveType.Quads);
-            //GL.Color4(Color.White);
-
-            GL.TexCoord2(0, 0);
-            GL.Vertex2(mx, my);
-
-            GL.TexCoord2(1, 0);
-            GL.Vertex2(mx + 100, my);
-
-            GL.TexCoord2(1, 1);
-            GL.Vertex2(mx + 100, my + 100);
-
-            GL.TexCoord2(0, 1);
-            GL.Vertex2(mx, my + 100);
-
-            GL.End();//
-                     //GL.BindTexture(TextureTarget.Texture2D, 0);*/
+            DrawDrag();
 
             SwapBuffers();
         }
