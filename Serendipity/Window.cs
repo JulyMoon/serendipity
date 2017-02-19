@@ -95,7 +95,11 @@ namespace Serendipity
                             dragging = false;
 
                             if (dragTileX != xx || dragTileY != yy)
+                            {
                                 game.Swap(dragTileX, dragTileY, xx, yy);
+                                if (game.IsSolved)
+                                    Title = "Solved";
+                            }
                         }
                     }
                     else if (!mdown)
