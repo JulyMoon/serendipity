@@ -13,8 +13,6 @@ namespace Serendipity
 
         public readonly int Width, Height;
 
-        private static readonly Random random = new Random();
-
         private Color[,] solution;
         private Color[,] tiles;
         private bool[,] locked;
@@ -51,7 +49,7 @@ namespace Serendipity
         {
             var spots = new List<Tuple<int, int>>();
             var freeTiles = new List<Color>();
-
+            
             for (int x = 0; x < Width; ++x)
                 for (int y = 0; y < Height; ++y)
                     if (!locked[x, y])
@@ -60,12 +58,17 @@ namespace Serendipity
                         freeTiles.Add(solution[x, y]);
                     }
 
+            newShuffle:
+            freeTiles.Shuffle();
+            
             for (int i = 0; i < spots.Count; ++i)
             {
-                int index = random.Next(freeTiles.Count);
-                tiles[spots[i].Item1, spots[i].Item2] = freeTiles[index];
-                freeTiles.RemoveAt(index);
+                if (freeTiles[i].ToArgb() == solution[spots[i].Item1, spots[i].Item2].ToArgb())
+                    goto newShuffle;
+
+                tiles[spots[i].Item1, spots[i].Item2] = freeTiles[i];
             }
+
         }
 
         public void Swap(int x1, int y1, int x2, int y2)
@@ -109,5 +112,23 @@ namespace Serendipity
             => Color.FromArgb(Blerp(topLeft.R, topRight.R, bottomRight.R, bottomLeft.R, x, y),
                               Blerp(topLeft.G, topRight.G, bottomRight.G, bottomLeft.G, x, y),
                               Blerp(topLeft.B, topRight.B, bottomRight.B, bottomLeft.B, x, y));
+    }
+}
+
+public static class ExtensionMethods
+{
+    private static readonly Random random = new Random();
+
+    public static void Shuffle<T>(this IList<T> list)
+    {
+        int n = list.Count;
+        while (n > 1)
+        {
+            n--;
+            int k = random.Next(n + 1);
+            T value = list[k];
+            list[k] = list[n];
+            list[n] = value;
+        }
     }
 }
